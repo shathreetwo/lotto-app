@@ -1,0 +1,24 @@
+SDL2_image 라이브러리의 서브모듈 중 일부가 GitHub에서 다운로드되지 않아서 빌드 실패한 상황.
+
+WSL2에서 GitHub 접속 안 될 때 해결
+아래 명령어로 DNS 문제를 해결할 수 있음. 
+
+echo "[network]" | sudo tee -a /etc/wsl.conf
+echo "generateResolvConf = false" | sudo tee -a /etc/wsl.conf
+sudo rm /etc/resolv.conf
+echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
+그리고 WSL 재시작:
+
+(파워셀)
+wsl --shutdown
+이후 다시 빌드 시도:
+
+buildozer android debug
+
+뭐가 안깔려있다고 빌드 실패한적이 많았다. 
+패키지 설치하면 그 다음 에러가 뜨고... 설치하면 또 그 다음 에러가 뜨고... 
+
+# Android packaging done!
+# APK myapp-0.1-arm64-v8a_armeabi-v7a-debug.apk available in the bin directory
+
+성공했으니 이제 파이썬으로 언제든지 앱을 만들수 있다. 
