@@ -32,12 +32,11 @@ buildozer android debug     # APK 생성
 8. APK 확인 및 설치
 apk꺼내서 구글드라이브 
 드라이브에서 apk다운받고 앱 설치
-
+cd
 ----------빌드 요약----------
-파워셀 wsl ->
+파워셀 wsl(wsl -d Ubuntu) ->
 cd 작업파일로 이동
 source myenv/bin/activate         # 가상환경 진입
-buildozer init                    # spec 파일 생성
 buildozer android clean           # 클린 빌드 준비
 buildozer android debug           # APK 빌드
 adb install ./bin/*.apk           # APK 설치 (옵션)
