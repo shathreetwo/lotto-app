@@ -22,3 +22,19 @@ buildozer android debug
 # APK myapp-0.1-arm64-v8a_armeabi-v7a-debug.apk available in the bin directory
 
 성공했으니 이제 파이썬으로 언제든지 앱을 만들수 있다. 
+
+----------
+
+한글깨짐현상. 
+
+스피너의 드롭다운에서는 깨져보이지만 선택하면 한글로 잘 보인다. 
+
+Spinner에서 선택하기 전 목록(드롭다운)이 깨지고,
+선택한 항목은 정상적으로 한글로 보인다는 건,
+Spinner의 "dropdown 내부 텍스트"에 폰트가 적용되지 않아서 생기는 문제입니다.
+
+Kivy의 Spinner는 내부적으로 드롭다운 항목을 **DropDown + Button**으로 구성해요.
+하지만 이 항목(Button)에 기본 폰트가 적용되어 있어 **한글이 안 보이고 깨짐(□)**이 되는 거예요.
+
+해결 방법: Spinner의 option_cls를 재정의해서 한글 폰트 지정하기라는데 안되서 
+그냥 암호종류는 영어로 출력하기로 함. 
