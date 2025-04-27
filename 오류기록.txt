@@ -21,7 +21,14 @@ buildozer android debug
 # Android packaging done!
 # APK myapp-0.1-arm64-v8a_armeabi-v7a-debug.apk available in the bin directory
 
-성공했으니 이제 파이썬으로 언제든지 앱을 만들수 있다. 
+성공했으니 이제 파이썬으로 언제든지 앱을 만들수 있다.
+
+dns 설정도 잘되있는데, github 접속오류가 뜰때.
+
+
+다른거 다 끄고 빌드만 한다. 
+다른거 켜두고 하면 인터넷오류가 잘뜨는듯. 
+다끄고 빌드만 켜면 접속오류는 해결됨.  
 
 ----------
 
@@ -38,3 +45,74 @@ Kivy의 Spinner는 내부적으로 드롭다운 항목을 **DropDown + Button**�
 
 해결 방법: Spinner의 option_cls를 재정의해서 한글 폰트 지정하기라는데 안되서 
 그냥 암호종류는 영어로 출력하기로 함. 
+
+----------
+
+앱이 실행안됨. 
+아마 한꺼번에 화면들이 로딩되면서 메모리 초과로 앱이 강제종료 된것같음. 
+
+1. 리소스 용량 과다
+이미지, 배경음악, 효과음 등의 리소스 파일이 너무 많거나 용량이 클 경우 메모리를 초과할 수 있어.
+
+특히 고해상도 이미지나 대용량 MP3, WAV 파일이 문제를 일으킬 수 있어.
+
+✅ 해결 팁:
+
+이미지: PNG 대신 WebP 사용하거나 해상도 줄이기.
+
+사운드: MP3 대신 OGG 사용 + 비트레이트 줄이기.
+
+🔍 2. 메모리 누수 or 과다한 위젯 로딩
+앱 시작 시 너무 많은 위젯이나 스크린, 이미지 등을 한꺼번에 로딩하면 메모리 초과로 앱이 강제 종료될 수 있어.
+
+✅ 해결 팁:
+
+ScreenManager를 사용할 때, 필요한 스크린만 로딩하도록 구현해.
+
+필요 없는 이미지는 사용 후 remove_widget()이나 texture = None 등으로 해제.
+
+🔍 3. Kivy 로그 확인
+앱이 왜 꺼지는지는 로그를 확인하는 게 가장 정확해.
+
+✅ 확인 방법 (Android 기준):
+
+buildozer android logcat 명령어로 실행 로그 확인 가능.
+
+🔍 4. buildozer.spec 파일 확인
+buildozer.spec에 불필요한 source.include_exts, requirements, android.permissions 등을 너무 많이 넣으면 문제가 될 수 있음.
+
+🔍 5. 폰 자체의 자원 부족
+테스트하는 폰이 오래되었거나, 램이 부족하면 앱이 실행되자마자 꺼질 수 있어.
+
+
+앱 구조 변경. 
+기존엔 앱 실행하자마자 모든 화면을 메모리에 올린다. 
+실패. 계속 꺼짐. 
+
+로그를 봐야할거같아서 Pydroid로 .py파일 실행. 
+오류. Crypto 모듈이 없어서 발생
+
+앱에 암호모듈이 없어서 꺼진걸까
+
+buildozer.spec에서 보안모듈 추가
+requirements = python3,kivy,pycryptodome
+
+빌드에 포함시키고 다시 시도.
+해결됨. 
+암호모듈이 포함되지 않아서 꺼졌던거같다.
+
+----------
+ AttributeError: 'CipherApp' object has no attribute 'rsa_pubkey_label'
+self.rsa_pubkey_label이라는 변수가 정의되지 않은 상태인데 접근하려고 해서 발생했어요.
+이런 식으로 self.rsa_pubkey_label로 선언하지 않고, 그냥 rsa_pubkey_label로만 만들었기 때문에,
+self.가 붙어야 인스턴스의 속성으로 저장되고, 나중에 접근할 수 있어야 합니다!
+
+self.변수명	이 클래스(화면 전체)의 속성, 다른 메소드에서도 접근 가능
+그냥 변수명	현재 함수 안에서만 존재, 다른 함수에서는 사용 불가
+
+----------
+
+self_key_input_layout을 바꿔야 되는데 
+self_key_input을 바꿔서 스피너가 먹통됨. 
+
+self.group_spinner.bind(text=self.on_group_select)를 지워버려서 스피너가 먹통된것도 있음. 

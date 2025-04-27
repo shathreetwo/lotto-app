@@ -1,0 +1,49 @@
+크롤링. 
+웹페이지에서 데이터 가져오는거. 
+
+정적 크롤링 : 한 페이지 가져오기 
+동적 크롤링 : 한 페이지로 다 못가져오는 페이지, 클릭, 스크롤, 로그인등 추가적인 정보가 업데이트 되는 페이지들
+동적 페이지의 데이터를 추출하기 위해서는 사용자의 동작(스크롤, 클릭, 로그인 등)을 프로그램이 자동으로 수행하도록 만들어 줘야한다.
+
+내가 구현할 로또번호 가져오기는 정적크롤링
+
+
+import requests
+url = "https://dhlottery.co.kr/gameResult.do?method=byWin" 
+response = requests.get(url) 
+print(response.text)
+
+기본적인 정적 크롤링 코드 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="EUC-KR">
+<meta id="utitle" name="title" content="동행복권">
+<meta id="desc" name="description" content="동행복권 1169회 당첨번호 5,12,24,26,39,42+20. 1등 총 10명, 1인당 당첨금액 2,852,735,813원.">
+<title>로또6/45 - 회차별 당첨번호</title>
+<title>동행복권</title>
+
+HTML 안에서 필요한 정보를 뽑으려면 보통 2가지 방법이 있어:
+
+방법	설명	추천 여부
+문자열 처리 (find, split)	문자열로 직접 파싱	초간단할 때만 추천
+BeautifulSoup 사용	HTML 구조 파악해서 요소 추출	대부분 추천! (지금처럼 복잡한 페이지에 딱 좋아)
+
+import requests
+from bs4 import BeautifulSoup
+
+url = "https://dhlottery.co.kr/gameResult.do?method=byWin"
+response = requests.get(url)
+soup = BeautifulSoup(response.text, 'html.parser')
+
+# 최근 회차 찾기
+round_info = soup.select_one('div.win_result h4 strong').text
+print("최근 회차:", round_info)
+
+# 당첨 번호 찾기
+numbers = [num.text for num in soup.select('div.num.win span')]
+print("당첨 번호:", numbers)
+
+# 보너스 번호
+bonus_number = soup.select_one('div.num.bonus span').text
+print("보너스 번호:", bonus_number)
