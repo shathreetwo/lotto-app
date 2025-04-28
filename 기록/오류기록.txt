@@ -116,3 +116,125 @@ self_key_input_layout을 바꿔야 되는데
 self_key_input을 바꿔서 스피너가 먹통됨. 
 
 self.group_spinner.bind(text=self.on_group_select)를 지워버려서 스피너가 먹통된것도 있음. 
+
+---------- 또 앱이 바로 꺼진다. 
+
+requirements = python3,kivy,pycryptodome,requests,beautifulsoup4
+✅ 요약
+
+python3, kivy → 기본 필수
+
+pycryptodome → 암호화 (AES, DES, RSA)
+
+requests → 웹 페이지 가져오기
+
+beautifulsoup4 → 웹 페이지 분석 (BeautifulSoup)
+
+필요한 패키지가 없어서 그런걸까? 
+
+
+휴대폰 usb디버깅으로 로그를 봤다. 
+adb devices 로 연결된 디바이스 확인
+adb logcat
+폰에서 일어나는 모든 로그
+파이썬앱이니까 파이썬 관련 로그만 보기 
+adb logcat | findstr python
+
+04-28 16:27:43.298 23997 24035 I python  :  ModuleNotFoundError: No module named 'typing_extensions'
+04-28 16:27:43.298 23997 24035 I python  : Python for android ended.
+
+typing_extensions라는 Python 모듈을 찾을 수 없어서 앱이 꺼진 거야.
+
+이 모듈은 Python에서 타입 힌트(타입 어노테이션) 지원을 확장해주는 라이브러리야.
+
+특히, 최신 라이브러리(pycryptodome, requests, beautifulsoup4 같은)들이 내부에서 이걸 사용할 수 있어.
+
+requirements = python3,kivy,pycryptodome,requests,beautifulsoup4,typing_extensions
+
+완료. 이제 안꺼지고 잘된다
+
+
+-----
+Caused by NameResolutionError("<urllib3.connection.HTTPConnection object at ...>")
+ 앱이 네트워크 통신(크롤링)하려다가 실패했을 때 나오는 에러야.
+
+Caused by NameResolutionError("<urllib3.connection.HTTPConnection object at ...>")
+뜻은:
+
+인터넷에 연결하려고 했는데
+
+DNS(도메인 이름 해석)가 실패했다는 거야.
+
+원인	설명
+인터넷 연결이 불안정	Wi-Fi 꺼졌거나, 데이터 꺼졌거나
+앱이 네트워크 권한 없음	안드로이드 빌드할 때 인터넷 권한을 안 줬을 때 (특히 APK 만들었으면 주의)
+
+android.permissions에 INTERNET 권한을 줬어야 해!
+
+✅ buildozer.spec 파일 수정 필요:
+
+plaintext
+복사
+편집
+android.permissions = INTERNET
+
+----------
+Kivy에서 텍스트 크기 조정하는 공식 방법
+
+방법	설명
+dp() 사용	다양한 해상도에서도 비율 맞추는 단위
+sp() 사용 (글꼴 사이즈 전용)	텍스트 크기를 기기 스케일에 맞게 더 정확히 조정
+
+단위	용도
+dp()	버튼, 레이아웃 사이즈 등
+sp()	텍스트 폰트 사이즈에 최적화됨 (user 설정 폰트 스케일도 반영)
+
+----------
+Spinner 자체는 font_name='Font'를 써서,
+선택된 텍스트에는 폰트를 적용했지만,
+리스트 안의 항목들(드롭다운 메뉴 항목) 은 별도 폰트 설정이 안 되어 있어서 그래.
+그래서 드롭다운목록에 한글들이 깨져나오는것. 
+
+from kivy.uix.spinner import SpinnerOption
+
+# 드롭다운에 한글폰트 적용된 옵션
+class KoreanSpinnerOption(SpinnerOption):
+    font_name = 'Font'  # ✅ 네가 등록한 한글 폰트
+    font_size = sp(20)
+
+커스텀 spinner만들고 
+
+그리고 Spinner 생성할 때 option_cls=KoreanSpinnerOption을 추가해줘.
+
+from kivy.uix.spinner import Spinner
+
+self.group_spinner = Spinner(
+    text='암호화 종류 선택',
+    values=tuple(self.algorithm_groups.keys()),
+    font_name='Font',
+    font_size=sp(20),
+    option_cls=KoreanSpinnerOption,  # ✅ 여기!
+    size_hint=(0.5, 1),
+    height=dp(50)
+)
+
+해결완료.
+
+-----
+
+앱테스트
+
+1. 로또화면 글자크기가 너무 커서 버튼을 넘는다. 
+
+2. 암호화면 키 입력부분이 암호화 스피너를 침범한다. + 암호화할떄 깨지는 부분있음. 
+
+3. rsa 암호화할때 갑자기 꺼진다. 
+04-28 22:52:01.435  9695  9734 I python  :  AttributeError: 'CipherApp' object has no attribute 'rsa_public_key'
+04-28 22:52:01.435  9695  9734 I python  : Python for android ended.
+
+4. 로또화면 최신 로또 가져올때 갑자기 꺼진다. 
+04-28 22:49:31.676  7703  7733 I python  :  NotImplementedError: Cannot execute CSS selectors because the soupsieve package is not installed.
+04-28 22:49:31.676  7703  7733 I python  : Python for android ended.
+
+5. aes 키없을때 기본키로 되야하는데 암호화가 안된다.
+(이건 pc에서도 발생)  
